@@ -1,0 +1,12 @@
+# vim swap files
+**/*.sw[po]
+
+# Terraform state and lock files
+**/.terraform.lock.hcl
+**/.terraform
+
+# IDE Folders
+**/.vscode
+
+# Mac Finder cache
+**/.DS_Store

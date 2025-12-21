@@ -1,0 +1,6 @@
+soft-fail: true
+framework:
+  - terraform
+skip-check:
+  - CKV_TF_1  # Ensure Terraform module sources use a commit hash
+  - CKV_TF_2  # Ensure Terraform module sources use a tag with a version number
