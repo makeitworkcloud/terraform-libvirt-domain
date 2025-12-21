@@ -1,0 +1,189 @@
+resource "libvirt_volume" "boot" {
+  name = "${var.name}.qcow2"
+  pool = var.storage_pool
+
+  target = {
+    format = {
+      type = "qcow2"
+    }
+  }
+
+  create = {
+    content = {
+      url = var.boot_image_url
+    }
+  }
+}
+
+resource "libvirt_volume" "extra" {
+  count    = length(var.extra_volumes)
+  name     = var.extra_volumes[count.index].name
+  pool     = var.storage_pool
+  capacity = var.extra_volumes[count.index].size
+}
+
+resource "libvirt_cloudinit_disk" "commoninit" {
+  name           = "${var.name}_commoninit"
+  meta_data      = templatefile(var.cloudinit_meta_data_template, var.cloudinit_meta_data_vars)
+  user_data      = templatefile(var.cloudinit_user_data_template, var.cloudinit_user_data_vars)
+  network_config = templatefile(var.cloudinit_network_config_template, var.cloudinit_network_config_vars)
+}
+
+resource "libvirt_volume" "cloudinit" {
+  name = "${var.name}_cloudinit.iso"
+  pool = var.storage_pool
+
+  create = {
+    content = {
+      url = libvirt_cloudinit_disk.commoninit.path
+    }
+  }
+}
+
+resource "libvirt_domain" "vm" {
+  name        = var.name
+  type        = "kvm"
+  description = var.description
+  vcpu        = var.vcpu
+  memory      = var.memory
+  memory_unit = "MiB"
+  running     = true
+
+  cpu = {
+    mode = "host-passthrough"
+  }
+
+  os = {
+    type         = "hvm"
+    type_arch    = "x86_64"
+    boot_devices = [{ dev = "hd" }]
+  }
+
+  devices = {
+    disks = concat(
+      [
+        {
+          source = {
+            volume = {
+              pool   = var.storage_pool
+              volume = libvirt_volume.boot.name
+            }
+          }
+          target = {
+            dev = "vda"
+            bus = "virtio"
+          }
+        },
+        {
+          source = {
+            volume = {
+              pool   = var.storage_pool
+              volume = libvirt_volume.cloudinit.name
+            }
+          }
+          target = {
+            dev = "vdb"
+            bus = "virtio"
+          }
+          device = "cdrom"
+        }
+      ],
+      [
+        for idx, vol in libvirt_volume.extra : {
+          source = {
+            volume = {
+              pool   = var.storage_pool
+              volume = vol.name
+            }
+          }
+          target = {
+            dev = "vd${substr("cdefghij", idx, 1)}"
+            bus = "virtio"
+          }
+        }
+      ]
+    )
+
+    interfaces = [
+      {
+        model = {
+          type = "virtio"
+        }
+        source = {
+          network = {
+            network = "default"
+          }
+        }
+      },
+      {
+        model = {
+          type = "virtio"
+        }
+        source = {
+          bridge = {
+            bridge = var.bridge_name
+          }
+        }
+      }
+    ]
+
+    graphics = [
+      {
+        vnc = {
+          auto_port = true
+          listen    = "0.0.0.0"
+          listeners = [
+            {
+              address = {
+                address = "0.0.0.0"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [devices]
+  }
+}
+
+data "aap_organization" "org" {
+  count      = var.enable_aap ? 1 : 0
+  name       = var.aap_org_name
+  depends_on = [libvirt_domain.vm]
+}
+
+data "aap_inventory" "inventory" {
+  count             = var.enable_aap ? 1 : 0
+  name              = var.aap_inventory_name
+  organization_name = data.aap_organization.org[0].name
+  depends_on        = [data.aap_organization.org]
+}
+
+resource "aap_host" "host" {
+  count        = var.enable_aap ? 1 : 0
+  name         = var.name
+  description  = var.description
+  inventory_id = data.aap_inventory.inventory[0].id
+  enabled      = true
+  variables = jsonencode({
+    ansible_host            = var.private_ip_addr
+    ansible_ssh_common_args = "-o ProxyCommand=\"ssh -o StrictHostKeyChecking=no -W %h:%p ${var.proxyhost}\""
+  })
+  depends_on = [data.aap_inventory.inventory]
+}
+
+data "aap_job_template" "job_template" {
+  count             = var.enable_aap ? 1 : 0
+  name              = var.aap_job_template_name != "" ? var.aap_job_template_name : "configure_${var.name}"
+  organization_name = data.aap_organization.org[0].name
+  depends_on        = [data.aap_organization.org]
+}
+
+resource "aap_job" "job" {
+  count           = var.enable_aap ? 1 : 0
+  job_template_id = data.aap_job_template.job_template[0].id
+  depends_on      = [aap_host.host, data.aap_job_template.job_template]
+}
