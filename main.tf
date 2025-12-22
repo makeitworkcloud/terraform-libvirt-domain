@@ -56,6 +56,7 @@ resource "libvirt_domain" "vm" {
   os = {
     type         = "hvm"
     type_arch    = "x86_64"
+    type_machine = "q35"
     boot_devices = [{ dev = "hd" }]
   }
 
