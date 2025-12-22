@@ -67,6 +67,10 @@ resource "libvirt_domain" "vm" {
     disks = concat(
       [
         {
+          driver = {
+            name = "qemu"
+            type = "qcow2"
+          }
           source = {
             volume = {
               pool   = var.storage_pool
