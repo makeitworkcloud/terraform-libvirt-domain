@@ -60,6 +60,9 @@ resource "libvirt_domain" "vm" {
   }
 
   devices = {
+    # Disk ordering: boot disk, extra volumes, then cdrom LAST
+    # libvirt returns disks sorted by bus type (virtio before sata/ide)
+    # so we must define them in that order to avoid provider inconsistency errors
     disks = concat(
       [
         {
@@ -73,19 +76,6 @@ resource "libvirt_domain" "vm" {
             dev = "vda"
             bus = "virtio"
           }
-        },
-        {
-          source = {
-            volume = {
-              pool   = var.storage_pool
-              volume = libvirt_volume.cloudinit.name
-            }
-          }
-          target = {
-            dev = "hda"
-            bus = "sata"
-          }
-          device = "cdrom"
         }
       ],
       [
@@ -97,9 +87,24 @@ resource "libvirt_domain" "vm" {
             }
           }
           target = {
-            dev = "vd${substr("cdefghij", idx, 1)}"
+            dev = "vd${substr("bcdefghij", idx, 1)}"
             bus = "virtio"
           }
+        }
+      ],
+      [
+        {
+          source = {
+            volume = {
+              pool   = var.storage_pool
+              volume = libvirt_volume.cloudinit.name
+            }
+          }
+          target = {
+            dev = "sda"
+            bus = "sata"
+          }
+          device = "cdrom"
         }
       ]
     )
@@ -145,7 +150,14 @@ resource "libvirt_domain" "vm" {
   }
 
   lifecycle {
-    ignore_changes = [devices]
+    # Ignore device ordering changes - libvirt provider 0.9.x has a bug where
+    # it returns disks in a different order than specified, causing
+    # "Provider produced inconsistent result after apply" errors.
+    # Also ignore graphics changes due to similar provider bugs.
+    ignore_changes = [
+      devices.disks,
+      devices.graphics,
+    ]
   }
 }
 
