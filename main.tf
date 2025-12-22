@@ -82,8 +82,8 @@ resource "libvirt_domain" "vm" {
             }
           }
           target = {
-            dev = "vdb"
-            bus = "virtio"
+            dev = "hda"
+            bus = "sata"
           }
           device = "cdrom"
         }
