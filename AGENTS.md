@@ -5,7 +5,7 @@
 
 ## Pre-commit Configuration
 
-Pre-commit configuration is **centralized** in `makeitworkcloud/shared-workflows/tfroot-pre-commit-config.yaml`. The CI workflow fetches this config at runtime.
+Pre-commit configuration is **centralized** in `makeitworkcloud/images/tfroot-runner/pre-commit-config.yaml`. The CI workflow fetches this config at runtime.
 
 **Do not** modify `.pre-commit-config.yaml` in this repository.
 
