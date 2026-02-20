@@ -203,4 +203,10 @@ resource "aap_job" "job" {
   count           = var.enable_aap ? 1 : 0
   job_template_id = data.aap_job_template.job_template[0].id
   depends_on      = [aap_host.host, data.aap_job_template.job_template]
+
+  lifecycle {
+    replace_triggered_by = [
+      libvirt_domain.vm
+    ]
+  }
 }
