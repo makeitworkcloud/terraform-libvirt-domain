@@ -1,5 +1,5 @@
 resource "libvirt_volume" "boot" {
-  name = "${var.name}.qcow2"
+  name = "${var.name}-${substr(sha256(var.boot_image_url), 0, 8)}.qcow2"
   pool = var.storage_pool
 
   target = {
