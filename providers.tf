@@ -4,10 +4,11 @@ terraform {
   required_providers {
     libvirt = {
       source  = "dmacvicar/libvirt"
-      version = ">= 0.9.0"
+      version = "~> 0.9.0"
     }
     aap = {
-      source = "registry.terraform.io/ansible/aap"
+      source  = "registry.terraform.io/ansible/aap"
+      version = "~> 1.4.0"
     }
   }
 }
