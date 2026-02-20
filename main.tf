@@ -155,12 +155,8 @@ resource "libvirt_domain" "vm" {
   }
 
   lifecycle {
-    # Ignore device ordering changes - libvirt provider 0.9.x has a bug where
-    # it returns disks in a different order than specified, causing
-    # "Provider produced inconsistent result after apply" errors.
-    # Also ignore graphics changes due to similar provider bugs.
+    # Ignore graphics changes due to similar provider bugs.
     ignore_changes = [
-      devices.disks,
       devices.graphics,
     ]
   }
