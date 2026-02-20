@@ -155,6 +155,10 @@ resource "libvirt_domain" "vm" {
   }
 
   lifecycle {
+    # Force replacement if the boot volume changes
+    replace_triggered_by = [
+      libvirt_volume.boot
+    ]
     # Ignore graphics changes due to similar provider bugs.
     ignore_changes = [
       devices.graphics,
