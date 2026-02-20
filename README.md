@@ -66,7 +66,7 @@ No modules.
 | <a name="input_aap_inventory_name"></a> [aap\_inventory\_name](#input\_aap\_inventory\_name) | Name of the AAP inventory to use. | `string` | `"libvirt-infra"` | no |
 | <a name="input_aap_job_template_name"></a> [aap\_job\_template\_name](#input\_aap\_job\_template\_name) | Name of the AAP job template to run.  If left empty, will default to configure\_<name> | `string` | `""` | no |
 | <a name="input_aap_org_name"></a> [aap\_org\_name](#input\_aap\_org\_name) | Name of the Ansible Automation Platform (AAP) organization. | `string` | `"Default"` | no |
-| <a name="input_boot_image_url"></a> [boot\_image\_url](#input\_boot\_image\_url) | URL for the base QCOW2 image used as the boot disk. | `string` | `"https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2"` | no |
+| <a name="input_boot_image_url"></a> [boot\_image\_url](#input\_boot\_image\_url) | URL for the base QCOW2 image used as the boot disk. | `string` | `"https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"` | no |
 | <a name="input_bridge_name"></a> [bridge\_name](#input\_bridge\_name) | Name of the network bridge for the second network interface. | `string` | `"nm-bridge"` | no |
 | <a name="input_cloudinit_meta_data_template"></a> [cloudinit\_meta\_data\_template](#input\_cloudinit\_meta\_data\_template) | The template content for cloud-init meta-data configuration. | `string` | n/a | yes |
 | <a name="input_cloudinit_meta_data_vars"></a> [cloudinit\_meta\_data\_vars](#input\_cloudinit\_meta\_data\_vars) | Variable map for the cloud-init meta-data template. | `map(string)` | n/a | yes |

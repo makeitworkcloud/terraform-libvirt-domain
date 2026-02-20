@@ -30,7 +30,7 @@ variable "storage_pool" {
 variable "boot_image_url" {
   description = "URL for the base QCOW2 image used as the boot disk."
   type        = string
-  default     = "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-42-1.1.x86_64.qcow2"
+  default     = "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
 }
 
 variable "extra_volumes" {
