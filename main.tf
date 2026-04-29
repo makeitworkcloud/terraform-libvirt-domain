@@ -1,6 +1,7 @@
 resource "libvirt_volume" "boot" {
-  name = "${var.name}-${substr(sha256(var.boot_image_url), 0, 8)}.qcow2"
-  pool = var.storage_pool
+  name     = "${var.name}-${substr(sha256(var.boot_image_url), 0, 8)}.qcow2"
+  pool     = var.storage_pool
+  capacity = var.boot_disk_size
 
   target = {
     format = {
@@ -162,51 +163,6 @@ resource "libvirt_domain" "vm" {
     # Ignore graphics changes due to similar provider bugs.
     ignore_changes = [
       devices.graphics,
-    ]
-  }
-}
-
-data "aap_organization" "org" {
-  count      = var.enable_aap ? 1 : 0
-  name       = var.aap_org_name
-  depends_on = [libvirt_domain.vm]
-}
-
-data "aap_inventory" "inventory" {
-  count             = var.enable_aap ? 1 : 0
-  name              = var.aap_inventory_name
-  organization_name = data.aap_organization.org[0].name
-  depends_on        = [data.aap_organization.org]
-}
-
-resource "aap_host" "host" {
-  count        = var.enable_aap ? 1 : 0
-  name         = var.name
-  description  = var.description
-  inventory_id = data.aap_inventory.inventory[0].id
-  enabled      = true
-  variables = jsonencode({
-    ansible_host            = var.private_ip_addr
-    ansible_ssh_common_args = "-o ProxyCommand=\"ssh -o StrictHostKeyChecking=no -W %h:%p ${var.proxyhost}\""
-  })
-  depends_on = [data.aap_inventory.inventory]
-}
-
-data "aap_job_template" "job_template" {
-  count             = var.enable_aap ? 1 : 0
-  name              = var.aap_job_template_name != "" ? var.aap_job_template_name : "configure_${var.name}"
-  organization_name = data.aap_organization.org[0].name
-  depends_on        = [data.aap_organization.org]
-}
-
-resource "aap_job" "job" {
-  count           = var.enable_aap ? 1 : 0
-  job_template_id = data.aap_job_template.job_template[0].id
-  depends_on      = [aap_host.host, data.aap_job_template.job_template]
-
-  lifecycle {
-    replace_triggered_by = [
-      libvirt_domain.vm
     ]
   }
 }
