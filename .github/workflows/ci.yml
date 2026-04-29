@@ -13,9 +13,9 @@ permissions:
 jobs:
   test:
     name: Pre-commit Tests
-    runs-on: arc-dind
+    runs-on: ubuntu-latest
     container:
-      image: ghcr.io/makeitworkcloud/runner:latest
+      image: ghcr.io/makeitworkcloud/tfroot-runner:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4

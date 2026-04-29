@@ -33,6 +33,12 @@ variable "boot_image_url" {
   default     = "https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"
 }
 
+variable "boot_disk_size" {
+  description = "Boot disk virtual size in bytes. Null means use the source image's natural size."
+  type        = number
+  default     = null
+}
+
 variable "extra_volumes" {
   description = <<EOF
 List of additional volumes to attach to the domain. Each object should contain:
@@ -87,38 +93,4 @@ variable "cloudinit_network_config_template" {
 variable "cloudinit_network_config_vars" {
   description = "Variable map for the cloud-init network configuration template."
   type        = map(string)
-}
-
-variable "private_ip_addr" {
-  description = "Private IP address to assign to the VM (used for network config and inventory)."
-  type        = string
-}
-
-variable "proxyhost" {
-  description = "Proxy host for SSH connection, used in ansible_ssh_common_args."
-  type        = string
-}
-
-variable "enable_aap" {
-  description = "Whether to provision Ansible Automation Platform (AAP) resources for this domain."
-  type        = bool
-  default     = false
-}
-
-variable "aap_org_name" {
-  description = "Name of the Ansible Automation Platform (AAP) organization."
-  type        = string
-  default     = "Default"
-}
-
-variable "aap_inventory_name" {
-  description = "Name of the AAP inventory to use."
-  type        = string
-  default     = "libvirt-infra"
-}
-
-variable "aap_job_template_name" {
-  description = "Name of the AAP job template to run.  If left empty, will default to configure_<name>"
-  type        = string
-  default     = ""
 }
