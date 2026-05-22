@@ -29,14 +29,14 @@ module "vm" {
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
 | <a name="requirement_libvirt"></a> [libvirt](#requirement\_libvirt) | ~> 0.9.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="provider_libvirt"></a> [libvirt](#provider\_libvirt) | ~> 0.9.0 |
 
 ## Modules
@@ -46,7 +46,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [libvirt_cloudinit_disk.commoninit](https://registry.terraform.io/providers/dmacvicar/libvirt/latest/docs/resources/cloudinit_disk) | resource |
 | [libvirt_domain.vm](https://registry.terraform.io/providers/dmacvicar/libvirt/latest/docs/resources/domain) | resource |
 | [libvirt_volume.boot](https://registry.terraform.io/providers/dmacvicar/libvirt/latest/docs/resources/volume) | resource |
@@ -56,7 +56,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_autostart"></a> [autostart](#input\_autostart) | Whether the domain should start automatically when libvirtd starts. | `bool` | `false` | no |
 | <a name="input_boot_disk_size"></a> [boot\_disk\_size](#input\_boot\_disk\_size) | Boot disk virtual size in bytes. Null means use the source image's natural size. | `number` | `null` | no |
 | <a name="input_boot_image_url"></a> [boot\_image\_url](#input\_boot\_image\_url) | URL for the base QCOW2 image used as the boot disk. | `string` | `"https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"` | no |
@@ -77,7 +77,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_boot_volume_id"></a> [boot\_volume\_id](#output\_boot\_volume\_id) | The ID of the boot volume |
 | <a name="output_cloudinit_disk_id"></a> [cloudinit\_disk\_id](#output\_cloudinit\_disk\_id) | The ID of the cloud-init disk |
 | <a name="output_domain_id"></a> [domain\_id](#output\_domain\_id) | The ID of the libvirt domain |
