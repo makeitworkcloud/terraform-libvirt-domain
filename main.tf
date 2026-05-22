@@ -30,6 +30,16 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   network_config = templatefile(var.cloudinit_network_config_template, var.cloudinit_network_config_vars)
 }
 
+# Stable trigger for cloudinit volume replacement: a hash of the actual
+# cloud-init data, not the cloudinit_disk's volatile local /tmp path.
+resource "terraform_data" "cloudinit_content" {
+  input = sha256(jsonencode({
+    meta_data      = templatefile(var.cloudinit_meta_data_template, var.cloudinit_meta_data_vars)
+    user_data      = templatefile(var.cloudinit_user_data_template, var.cloudinit_user_data_vars)
+    network_config = templatefile(var.cloudinit_network_config_template, var.cloudinit_network_config_vars)
+  }))
+}
+
 resource "libvirt_volume" "cloudinit" {
   name = "${var.name}_cloudinit.iso"
   pool = var.storage_pool
@@ -41,12 +51,20 @@ resource "libvirt_volume" "cloudinit" {
   }
 
   # libvirt_cloudinit_disk renders its ISO under a local /tmp path that lives
-  # in state. Any tofu invocation on a different host (CI runners vs laptop)
-  # sees the file missing and recreates the disk, which changes the URL above.
-  # The libvirt provider can't update libvirt_volume in place, so replace it.
+  # in state. A tofu invocation on a host without that file (CI runner vs
+  # laptop, post-reboot /tmp wipe) sees it as drift and rebuilds the disk,
+  # producing a new path. The libvirt provider can't update libvirt_volume in
+  # place ("Storage volumes cannot be updated"), so the cascading url change
+  # used to break every cross-host apply.
+  #
+  # Ignore url drift entirely; replace the volume only when the cloud-init
+  # content itself actually changes (tracked via terraform_data).
   lifecycle {
+    ignore_changes = [
+      create,
+    ]
     replace_triggered_by = [
-      libvirt_cloudinit_disk.commoninit
+      terraform_data.cloudinit_content,
     ]
   }
 }
