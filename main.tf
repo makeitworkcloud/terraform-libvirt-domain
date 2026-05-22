@@ -39,6 +39,16 @@ resource "libvirt_volume" "cloudinit" {
       url = libvirt_cloudinit_disk.commoninit.path
     }
   }
+
+  # libvirt_cloudinit_disk renders its ISO under a local /tmp path that lives
+  # in state. Any tofu invocation on a different host (CI runners vs laptop)
+  # sees the file missing and recreates the disk, which changes the URL above.
+  # The libvirt provider can't update libvirt_volume in place, so replace it.
+  lifecycle {
+    replace_triggered_by = [
+      libvirt_cloudinit_disk.commoninit
+    ]
+  }
 }
 
 resource "libvirt_domain" "vm" {
