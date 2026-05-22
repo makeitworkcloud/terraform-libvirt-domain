@@ -38,6 +38,7 @@ module "vm" {
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_libvirt"></a> [libvirt](#provider\_libvirt) | ~> 0.9.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -52,6 +53,7 @@ No modules.
 | [libvirt_volume.boot](https://registry.terraform.io/providers/dmacvicar/libvirt/latest/docs/resources/volume) | resource |
 | [libvirt_volume.cloudinit](https://registry.terraform.io/providers/dmacvicar/libvirt/latest/docs/resources/volume) | resource |
 | [libvirt_volume.extra](https://registry.terraform.io/providers/dmacvicar/libvirt/latest/docs/resources/volume) | resource |
+| [terraform_data.cloudinit_content](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
