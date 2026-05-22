@@ -65,6 +65,12 @@ variable "bridge_name" {
   default     = "nm-bridge"
 }
 
+variable "autostart" {
+  description = "Whether the domain should start automatically when libvirtd starts."
+  type        = bool
+  default     = false
+}
+
 variable "cloudinit_meta_data_template" {
   description = "The template content for cloud-init meta-data configuration."
   type        = string

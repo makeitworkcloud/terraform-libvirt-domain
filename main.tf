@@ -49,6 +49,7 @@ resource "libvirt_domain" "vm" {
   memory      = var.memory
   memory_unit = "MiB"
   running     = true
+  autostart   = var.autostart
 
   cpu = {
     mode = "host-passthrough"
