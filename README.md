@@ -57,6 +57,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_autostart"></a> [autostart](#input\_autostart) | Whether the domain should start automatically when libvirtd starts. | `bool` | `false` | no |
 | <a name="input_boot_disk_size"></a> [boot\_disk\_size](#input\_boot\_disk\_size) | Boot disk virtual size in bytes. Null means use the source image's natural size. | `number` | `null` | no |
 | <a name="input_boot_image_url"></a> [boot\_image\_url](#input\_boot\_image\_url) | URL for the base QCOW2 image used as the boot disk. | `string` | `"https://download.fedoraproject.org/pub/fedora/linux/releases/43/Cloud/x86_64/images/Fedora-Cloud-Base-Generic-43-1.6.x86_64.qcow2"` | no |
 | <a name="input_bridge_name"></a> [bridge\_name](#input\_bridge\_name) | Name of the network bridge for the second network interface. | `string` | `"nm-bridge"` | no |
