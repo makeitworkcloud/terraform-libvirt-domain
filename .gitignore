@@ -10,3 +10,7 @@
 
 # Mac Finder cache
 **/.DS_Store
+
+# Generated pre-commit configuration
+/.pre-commit-config.yaml
+/.pre-commit-config.yaml.tmp
