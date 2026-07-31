@@ -10,13 +10,15 @@ Use a feature branch and open a pull request rather than pushing directly to
 
 ## Pre-commit Configuration
 
-Pre-commit configuration is **centralized** in `makeitworkcloud/images/tfroot-runner/pre-commit-config.yaml`. The CI workflow fetches this config at runtime.
-
-**Do not** modify `.pre-commit-config.yaml` in this repository.
+Pre-commit configuration is centralized at
+`https://raw.githubusercontent.com/makeitworkcloud/images/main/tfroot-runner/pre-commit-config.yaml`. The root
+`.pre-commit-config.yaml` is generated and ignored; do not edit it.
 
 For local development, run:
 ```bash
 make test
 ```
 
-This automatically fetches the canonical config if not present.
+This refreshes the generated config from the canonical source on every run and
+replaces it only when the content changed. CI also runs `make test`, so the
+module fetches the same canonical config there rather than tracking a copy.

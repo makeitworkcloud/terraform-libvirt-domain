@@ -1,7 +1,7 @@
 SHELL     := /bin/bash
 TERRAFORM := $(shell which tofu)
 
-.PHONY: help init test pre-commit-check-deps pre-commit-install-hooks
+.PHONY: help init test pre-commit-config pre-commit-check-deps pre-commit-install-hooks
 
 help:
 	@echo "Terraform Module targets"
@@ -9,7 +9,7 @@ help:
 	@echo
 	@echo "\thelp: show this help text"
 	@echo "\tinit: run 'terraform init' (no backend)"
-	@echo "\ttest: run pre-commit checks"
+	@echo "\ttest: fetch canonical pre-commit config and run checks"
 	@echo
 	@echo "One-time repo init targets"
 	@echo "--------------------------"
@@ -21,12 +21,18 @@ help:
 init:
 	@${TERRAFORM} init -backend=false -upgrade
 
-test: .pre-commit-config.yaml .git/hooks/pre-commit
+test: pre-commit-config pre-commit-install-hooks
 	@pre-commit run -a
 
-.pre-commit-config.yaml:
-	@curl -sSL -o .pre-commit-config.yaml \
+pre-commit-config:
+	@curl --fail --silent --show-error --location \
+		--output .pre-commit-config.yaml.tmp \
 		https://raw.githubusercontent.com/makeitworkcloud/images/main/tfroot-runner/pre-commit-config.yaml
+	@if cmp -s .pre-commit-config.yaml.tmp .pre-commit-config.yaml; then \
+		rm -f .pre-commit-config.yaml.tmp; \
+	else \
+		mv .pre-commit-config.yaml.tmp .pre-commit-config.yaml; \
+	fi
 
 DEPS_PRE_COMMIT=$(shell which pre-commit || echo "pre-commit not found")
 DEPS_TERRAFORM_DOCS=$(shell which terraform-docs || echo "terraform-docs not found")
@@ -42,7 +48,5 @@ pre-commit-check-deps:
 	@echo "  jq: ${DEPS_JQ}"
 	@echo ""
 
-pre-commit-install-hooks: .git/hooks/pre-commit
-
-.git/hooks/pre-commit: pre-commit-check-deps
-	@pre-commit install --install-hooks
+pre-commit-install-hooks: pre-commit-config pre-commit-check-deps
+	@pre-commit install --install-hooks --hook-type pre-commit --hook-type commit-msg
