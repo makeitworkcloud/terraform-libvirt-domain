@@ -1,7 +1,12 @@
 # Operational Context
-- **Type:** Terraform Module
-- **Test:** `make test`
-- **Lint:** `tflint`, `terraform fmt`
+- **Type:** OpenTofu-compatible infrastructure module
+- **Static validation:** `make test`
+- **Lint:** `tflint`, `tofu fmt`
+
+## Git Workflow
+
+Use a feature branch and open a pull request rather than pushing directly to
+`main`. Do not push any branch unless explicitly requested.
 
 ## Pre-commit Configuration
 
