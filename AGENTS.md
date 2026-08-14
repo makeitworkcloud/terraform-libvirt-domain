@@ -22,3 +22,10 @@ make test
 This refreshes the generated config from the canonical source on every run and
 replaces it only when the content changed. CI also runs `make test`, so the
 module fetches the same canonical config there rather than tracking a copy.
+
+## CI and Releases
+
+Pull requests and pushes to `main` run `make test` in the canonical
+`tfroot-runner` environment. A `v*` tag runs the same tests and then creates a
+GitHub Release with generated notes. Merging to `main` alone does not publish a
+release.
