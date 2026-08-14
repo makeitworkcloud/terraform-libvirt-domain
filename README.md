@@ -6,7 +6,7 @@ Terraform module for creating libvirt domains (VMs) with cloud-init and optional
 
 ```hcl
 module "vm" {
-  source = "git::https://github.com/makeitworkcloud/terraform-libvirt-domain.git?ref=v1.0.0"
+  source = "git::https://github.com/makeitworkcloud/terraform-libvirt-domain.git?ref=v0.1.0"
 
   name        = "my-vm"
   description = "My virtual machine"
