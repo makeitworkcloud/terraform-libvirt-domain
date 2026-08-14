@@ -1,6 +1,7 @@
 soft-fail: true
 framework:
   - terraform
+# This reusable module has no child module sources, so module-source pin checks are inapplicable.
 skip-check:
-  - CKV_TF_1  # Ensure Terraform module sources use a commit hash
-  - CKV_TF_2  # Ensure Terraform module sources use a tag with a version number
+  - CKV_TF_1
+  - CKV_TF_2

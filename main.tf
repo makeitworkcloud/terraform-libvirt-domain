@@ -30,8 +30,6 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   network_config = templatefile(var.cloudinit_network_config_template, var.cloudinit_network_config_vars)
 }
 
-# Stable trigger for cloudinit volume replacement: a hash of the actual
-# cloud-init data, not the cloudinit_disk's volatile local /tmp path.
 resource "terraform_data" "cloudinit_content" {
   input = sha256(jsonencode({
     meta_data      = templatefile(var.cloudinit_meta_data_template, var.cloudinit_meta_data_vars)
@@ -185,7 +183,6 @@ resource "libvirt_domain" "vm" {
   }
 
   lifecycle {
-    # Force replacement if the boot volume changes
     replace_triggered_by = [
       libvirt_volume.boot
     ]
