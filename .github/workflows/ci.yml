@@ -30,6 +30,7 @@ jobs:
         id: initialize
         if: always() && steps.checkout.outcome == 'success'
         continue-on-error: true
+        shell: bash
         run: |
           set -o pipefail
           tofu init -backend=false 2>&1 | tee initialize.log
@@ -38,6 +39,7 @@ jobs:
         id: validation
         if: always() && steps.initialize.outcome == 'success'
         continue-on-error: true
+        shell: bash
         run: |
           set -o pipefail
           SKIP=no-commit-to-branch make test 2>&1 | tee validation.log
