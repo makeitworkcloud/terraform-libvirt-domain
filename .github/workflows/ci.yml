@@ -12,6 +12,9 @@ permissions:
 
 jobs:
   test:
+    permissions:
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/makeitworkcloud/tfroot-runner:latest
@@ -22,10 +25,58 @@ jobs:
           fetch-depth: 0
 
       - name: Initialize OpenTofu
+        id: initialize
+        continue-on-error: true
         run: tofu init -backend=false
 
       - name: Run tests
+        id: validation
+        if: always() && steps.initialize.outcome == 'success'
+        continue-on-error: true
         run: SKIP=no-commit-to-branch make test
+
+      - name: Report validation on pull request
+        if: >-
+          always() && github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          VALIDATION_FAILED: ${{ steps.initialize.outcome == 'failure' || steps.validation.outcome == 'failure' }}
+        with:
+          script: |
+            const marker = '<!-- terraform-module-ci-status -->';
+            const failed = process.env.VALIDATION_FAILED === 'true';
+            const workflowUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = failed
+              ? `${marker}\n## Terraform module CI failed\n\nValidation failed. [View the workflow run](${workflowUrl}).`
+              : `${marker}\n## Terraform module CI passed\n\nOpenTofu initialization and validation passed. [View the workflow run](${workflowUrl}).`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((comment) => comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Mark validation failed
+        if: >-
+          always() &&
+          (steps.initialize.outcome == 'failure' || steps.validation.outcome == 'failure')
+        run: exit 1
 
   release:
     runs-on: ubuntu-latest
