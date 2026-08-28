@@ -1,31 +1,11 @@
-# Operational Context
-- **Type:** OpenTofu-compatible infrastructure module
-- **Static validation:** `make test`
-- **Lint:** `tflint`, `tofu fmt`
+# Agent Instructions
 
-## Git Workflow
+## Ownership
 
-Use a feature branch and open a pull request rather than pushing directly to
-`main`. Do not push any branch unless explicitly requested.
+OpenTofu-compatible module for libvirt domains. Keep module inputs, outputs, provider constraints, and generated documentation compatible with downstream consumers.
 
-## Pre-commit Configuration
+## Validation and delivery
 
-Pre-commit configuration is centralized at
-`https://raw.githubusercontent.com/makeitworkcloud/images/main/tfroot-runner/pre-commit-config.yaml`. The root
-`.pre-commit-config.yaml` is generated and ignored; do not edit it.
+Use GitHub MCP and PR CI as the validation authority. The canonical pre-commit configuration is owned by `images/tfroot-runner`; the generated root config must not be edited. Do not run local OpenTofu, Makefile, or release commands from this headless server.
 
-For local development, run:
-```bash
-make test
-```
-
-This refreshes the generated config from the canonical source on every run and
-replaces it only when the content changed. CI also runs `make test`, so the
-module fetches the same canonical config there rather than tracking a copy.
-
-## CI and Releases
-
-Pull requests and pushes to `main` run `make test` in the canonical
-`tfroot-runner` environment. A `v*` tag runs the same tests and then creates a
-GitHub Release with generated notes. Merging to `main` alone does not publish a
-release.
+A `v*` tag releases the module. Open an authorized scoped branch and PR; do not tag, publish, or merge without explicit confirmation. Never expose state, credentials, SSH material, decrypted SOPS values, or sensitive plans.
