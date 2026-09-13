@@ -4,7 +4,7 @@ variable "name" {
 }
 
 variable "description" {
-  description = "Description for the libvirt domain (virtual machine)."
+  description = "Description for the libvirt domain."
   type        = string
   default     = ""
 }
@@ -37,6 +37,18 @@ variable "boot_disk_size" {
   description = "Boot disk virtual size in bytes. Null means use the source image's natural size."
   type        = number
   default     = null
+}
+
+variable "boot_rebuild_token" {
+  description = "Non-null forces boot-volume and domain replacement. Never remove or change it after a confirmed rebuild."
+  type        = string
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.boot_rebuild_token == null || can(regex("^[A-Za-z0-9._-]{1,64}$", var.boot_rebuild_token))
+    error_message = "boot_rebuild_token must be null or 1-64 characters of [A-Za-z0-9._-]."
+  }
 }
 
 variable "extra_volumes" {
@@ -82,7 +94,7 @@ variable "cloudinit_meta_data_vars" {
 }
 
 variable "cloudinit_user_data_template" {
-  description = "The template content for cloud-init user-data configuration."
+  description = "The template content for cloud-init user-data template."
   type        = string
 }
 
