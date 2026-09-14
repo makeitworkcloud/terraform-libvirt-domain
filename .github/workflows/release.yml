@@ -1,0 +1,68 @@
+# Automatic release CD for the Terraform module.
+#
+# googleapis/release-please derives the next SemVer version from Conventional
+# Commit history (fix: -> patch, feat: -> minor, ! or BREAKING CHANGE ->
+# major) and maintains a release pull request (changelog and version bump)
+# against main. The Git tag and GitHub release are created only after the ci
+# workflow succeeds for the exact commit at the tip of main:
+#
+# 1. A push to main (for example merging the release pull request) runs ci.
+# 2. On ci completion this workflow starts (workflow_run gate).
+# 3. The guard step fails the run unless the green ci run tested the current
+#    main tip, so nothing is tagged from a commit whose ci has not passed.
+# 4. release-please then updates the release pull request or, when the merged
+#    commit is the release pull request itself, creates the vX.Y.Z Git tag and
+#    the GitHub release using only the ephemeral GITHUB_TOKEN.
+#
+# Tags created with GITHUB_TOKEN do not trigger further workflow runs, so the
+# tag does not re-run ci. workflow_run uses the default-branch copy of this
+# file, so activation starts once this change reaches main.
+name: release
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+
+# Minimum scopes documented by googleapis/release-please-action for creating
+# tags, releases, release pull requests, and labels.
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: module-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the successful ci run tested the current main commit
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const ciHead = context.payload.workflow_run.head_sha;
+            const {data: branch} = await github.rest.repos.getBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: 'main',
+            });
+            if (branch.commit.sha !== ciHead) {
+              core.setFailed(
+                'ci passed for ' + ciHead.slice(0, 7) +
+                ' but main is at ' + branch.commit.sha.slice(0, 7) +
+                '; the newer commit releases after its own ci run succeeds'
+              );
+            }
+
+      - name: Conventional Commits release (SemVer, tag, and GitHub release)
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          release-type: terraform-module
+          token: ${{ secrets.GITHUB_TOKEN }}
