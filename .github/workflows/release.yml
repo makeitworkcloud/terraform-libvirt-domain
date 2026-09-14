@@ -1,15 +1,36 @@
+# Automatic release CD for the Terraform module.
+#
+# googleapis/release-please derives the next SemVer version from Conventional
+# Commit history (fix: -> patch, feat: -> minor, ! or BREAKING CHANGE ->
+# major) and maintains a release pull request (changelog and version bump)
+# against main. The Git tag and GitHub release are created only after the ci
+# workflow succeeds for the exact commit at the tip of main:
+#
+# 1. A push to main (for example merging the release pull request) runs ci.
+# 2. On ci completion this workflow starts (workflow_run gate).
+# 3. The guard step fails the run unless the green ci run tested the current
+#    main tip, so nothing is tagged from a commit whose ci has not passed.
+# 4. release-please then updates the release pull request or, when the merged
+#    commit is the release pull request itself, creates the vX.Y.Z Git tag and
+#    the GitHub release using only the ephemeral GITHUB_TOKEN.
+#
+# Tags created with GITHUB_TOKEN do not trigger further workflow runs, so the
+# tag does not re-run ci. workflow_run uses the default-branch copy of this
+# file, so activation starts once this change reaches main.
 name: release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: SemVer release tag (for example v0.2.0)
-        required: true
-        type: string
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
 
+# Minimum scopes documented by googleapis/release-please-action for creating
+# tags, releases, release pull requests, and labels.
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: module-release
@@ -17,44 +38,31 @@ concurrency:
 
 jobs:
   release:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Validate release version
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "version must use vX.Y.Z SemVer" >&2
-            exit 1
-          fi
-
-      - name: Checkout main
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify the successful ci run tested the current main commit
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: true
+          script: |
+            const ciHead = context.payload.workflow_run.head_sha;
+            const {data: branch} = await github.rest.repos.getBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: 'main',
+            });
+            if (branch.commit.sha !== ciHead) {
+              core.setFailed(
+                'ci passed for ' + ciHead.slice(0, 7) +
+                ' but main is at ' + branch.commit.sha.slice(0, 7) +
+                '; the newer commit releases after its own ci run succeeds'
+              );
+            }
 
-      - name: Reject an existing tag
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          if git ls-remote --exit-code --tags origin "refs/tags/$VERSION"; then
-            echo "tag $VERSION already exists" >&2
-            exit 1
-          fi
-
-      - name: Create and push annotated tag
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$VERSION" -m "Release $VERSION"
-          git push origin "$VERSION"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+      - name: Conventional Commits release (SemVer, tag, and GitHub release)
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          tag_name: ${{ inputs.version }}
-          generate_release_notes: true
+          release-type: terraform-module
+          token: ${{ secrets.GITHUB_TOKEN }}
