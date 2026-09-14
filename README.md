@@ -68,9 +68,9 @@ No modules.
 | <a name="input_cloudinit_meta_data_vars"></a> [cloudinit\_meta\_data\_vars](#input\_cloudinit\_meta\_data\_vars) | Variable map for the cloud-init meta-data template. | `map(string)` | n/a | yes |
 | <a name="input_cloudinit_network_config_template"></a> [cloudinit\_network\_config\_template](#input\_cloudinit\_network\_config\_template) | The template content for cloud-init network configuration. | `string` | n/a | yes |
 | <a name="input_cloudinit_network_config_vars"></a> [cloudinit\_network\_config\_vars](#input\_cloudinit\_network\_config\_vars) | Variable map for the cloud-init network configuration template. | `map(string)` | n/a | yes |
-| <a name="input_cloudinit_user_data_template"></a> [cloudinit\_user\_data\_template](#input\_cloudinit\_user\_data\_template) | The template content for cloud-init user-data configuration. | `string` | n/a | yes |
+| <a name="input_cloudinit_user_data_template"></a> [cloudinit\_user\_data\_template](#input\_cloudinit\_user\_data\_template) | The template content for cloud-init user-data template. | `string` | n/a | yes |
 | <a name="input_cloudinit_user_data_vars"></a> [cloudinit\_user\_data\_vars](#input\_cloudinit\_user\_data\_vars) | Variable map for the cloud-init user-data template. Set to {} if not used. | `map(string)` | n/a | yes |
-| <a name="input_description"></a> [description](#input\_description) | Description for the libvirt domain (virtual machine). | `string` | `""` | no |
+| <a name="input_description"></a> [description](#input\_description) | Description for the libvirt domain. | `string` | `""` | no |
 | <a name="input_extra_volumes"></a> [extra\_volumes](#input\_extra\_volumes) | List of additional volumes to attach to the domain. Each object should contain:<br/>  - name: Name of the volume.<br/>  - size: Size of the volume in bytes.<br/>Example:<br/>[<br/>  {<br/>    name = "runner-var-lib-docker.qcow2"<br/>    size = 107374182400<br/>  }<br/>] | <pre>list(object({<br/>    name = string<br/>    size = number<br/>  }))</pre> | `[]` | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | Amount of memory (in MB) to assign to the domain. | `number` | `2048` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name of the libvirt domain (virtual machine) and related resources. | `string` | n/a | yes |
