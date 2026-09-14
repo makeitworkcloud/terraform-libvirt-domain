@@ -1,5 +1,11 @@
+locals {
+  boot_image_hash  = substr(sha256(var.boot_image_url), 0, 8)
+  boot_token_hash  = var.boot_rebuild_token == null ? "" : "-${substr(sha256(var.boot_rebuild_token), 0, 8)}"
+  boot_volume_name = "${var.name}-${local.boot_image_hash}${local.boot_token_hash}.qcow2"
+}
+
 resource "libvirt_volume" "boot" {
-  name     = "${var.name}-${substr(sha256(var.boot_image_url), 0, 8)}.qcow2"
+  name     = local.boot_volume_name
   pool     = var.storage_pool
   capacity = var.boot_disk_size
 
