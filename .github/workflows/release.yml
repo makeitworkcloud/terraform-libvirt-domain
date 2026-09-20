@@ -83,8 +83,16 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
+      # The existing signed v0.1.0 tag and release are preserved. That tag
+      # targets 218dd6, which is outside main history; fd84957 is the
+      # reachable tree-identical twin. Config-file mode seeds the current
+      # version 0.1.0 from .release-please-manifest.json and bounds the
+      # adoption history with last-release-sha fd84957, avoiding any retag.
+      # An inline release-type input would bypass release-please-config.json,
+      # so it stays unset here.
       - name: Conventional Commits release (SemVer, tag, and GitHub release)
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          release-type: terraform-module
           token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
