@@ -21,12 +21,12 @@
 # The App token is minted from the organization's chart updater GitHub App
 # (manual owner configuration, not Terraform-managed) and is scoped to
 # owner makeitworkcloud / repositories terraform-libvirt-domain with Contents
-# and Pull requests write only. The App installation must manually select
-# terraform-libvirt-domain; until an organization owner confirms that
-# installation, this workflow cannot mint a token and the rollout is not
-# complete. Unlike GITHUB_TOKEN, App-created tags can trigger workflow runs;
-# ci does not listen for tags and release-please is the single release
-# producer, so the tag does not re-enter CI.
+# and Pull requests write only. The installation scope is currently
+# unverified: rollout stays blocked until an organization owner confirms the
+# repository is selected (Only select repositories), and token minting fails
+# if the repository is not selected. Unlike GITHUB_TOKEN, App-created tags
+# can trigger workflow runs; ci does not listen for tags and release-please
+# is the single release producer, so the tag does not re-enter CI.
 #
 # workflow_run uses the default-branch copy of this file, so activation starts
 # once this change reaches main.
