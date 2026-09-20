@@ -40,9 +40,9 @@ jobs:
             }
             const parts = [
               marker,
-              '#### OpenTofu Test',
+              '#### Module validation',
               '',
-              'OpenTofu test is in progress; this comment will be updated when the run completes.',
+              'Module validation is in progress; this comment will be updated when the run completes.',
               '',
               `[View the workflow run](${workflowUrl}).`,
             ];
@@ -107,7 +107,7 @@ jobs:
           assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", manifest["."])
 
           workflow = Path(".github/workflows/release.yml").read_text()
-          assert "release-type:" not in workflow
+          assert not re.search(r"(?m)^\s*release-type\s*:", workflow)
           assert "config-file: release-please-config.json" in workflow
           assert "manifest-file: .release-please-manifest.json" in workflow
 
@@ -150,11 +150,11 @@ jobs:
               .replace(/````/g, '\\`\\`\\`\\`') || 'No validation output was captured.';
             const excerpt = output.length > maxLength ? output.slice(-maxLength) : output;
             const status = failed
-              ? `OpenTofu test failed (failed steps: ${failedSteps.join(', ')}).`
-              : 'OpenTofu test passed.';
+              ? `Module validation failed (failed steps: ${failedSteps.join(', ')}).`
+              : 'Module validation passed.';
             const body = [
               marker,
-              '#### OpenTofu Test',
+              '#### Module validation',
               '',
               status,
               '',

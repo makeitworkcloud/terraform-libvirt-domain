@@ -83,13 +83,13 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
-      # The signed annotated tag v0.1.0 points at 218dd6, the pre-rewrite
-      # twin of the tree-identical reachable commit fd84957; release-please
-      # skips release SHAs that are not reachable from main, so the baseline
-      # is anchored by release-please-config.json (last-release-sha) and
-      # .release-please-manifest.json (current version 0.1.0). The existing
-      # tag and release are preserved. release-type must stay unset here:
-      # the action bypasses the config file when release-type is present.
+      # The existing signed v0.1.0 tag and release are preserved. That tag
+      # targets 218dd6, which is outside main history; fd84957 is the
+      # reachable tree-identical twin. Config-file mode seeds the current
+      # version 0.1.0 from .release-please-manifest.json and bounds the
+      # adoption history with last-release-sha fd84957, avoiding any retag.
+      # An inline release-type input would bypass release-please-config.json,
+      # so it stays unset here.
       - name: Conventional Commits release (SemVer, tag, and GitHub release)
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
