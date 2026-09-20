@@ -81,6 +81,40 @@ jobs:
           set -o pipefail
           SKIP=no-commit-to-branch make test 2>&1 | tee validation.log
 
+      - name: Assert release-please baseline configuration
+        id: release-baseline
+        if: always() && steps.checkout.outcome == 'success'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import re
+          import subprocess
+          from pathlib import Path
+
+          anchor = "fd84957dad31ed46bf57175c7735e475a361aceb"
+
+          config = json.loads(Path("release-please-config.json").read_text())
+          assert config.get("release-type") == "terraform-module"
+          assert config.get("include-component-in-tag") is False
+          assert config.get("last-release-sha") == anchor
+          assert config.get("packages") == {".": {}}
+          for banned in ("release-as", "bump-minor-pre-major", "bump-patch-for-minor-pre-major"):
+              assert banned not in config, banned
+
+          manifest = json.loads(Path(".release-please-manifest.json").read_text())
+          assert list(manifest) == ["."]
+          assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", manifest["."])
+
+          workflow = Path(".github/workflows/release.yml").read_text()
+          assert "release-type:" not in workflow
+          assert "config-file: release-please-config.json" in workflow
+          assert "manifest-file: .release-please-manifest.json" in workflow
+
+          subprocess.run(["git", "merge-base", "--is-ancestor", anchor, "HEAD"], check=True)
+          print("release-please baseline configuration verified")
+          PY
+
       - name: Report validation on pull request
         if: >-
           always() && github.event_name == 'pull_request' &&
@@ -90,6 +124,7 @@ jobs:
           CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
           INITIALIZE_OUTCOME: ${{ steps.initialize.outcome }}
           VALIDATION_OUTCOME: ${{ steps.validation.outcome }}
+          RELEASE_BASELINE_OUTCOME: ${{ steps.release-baseline.outcome }}
         with:
           script: |
             const fs = require('fs');
@@ -98,6 +133,7 @@ jobs:
               checkout: process.env.CHECKOUT_OUTCOME,
               'OpenTofu initialization': process.env.INITIALIZE_OUTCOME,
               validation: process.env.VALIDATION_OUTCOME,
+              'release baseline': process.env.RELEASE_BASELINE_OUTCOME,
             };
             const failedSteps = Object.entries(outcomes)
               .filter(([, outcome]) => outcome === 'failure')
@@ -159,5 +195,6 @@ jobs:
           always() &&
           (steps.checkout.outcome == 'failure' ||
            steps.initialize.outcome == 'failure' ||
-           steps.validation.outcome == 'failure')
+           steps.validation.outcome == 'failure' ||
+           steps.release-baseline.outcome == 'failure')
         run: exit 1
