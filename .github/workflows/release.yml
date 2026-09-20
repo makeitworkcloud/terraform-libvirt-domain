@@ -9,14 +9,27 @@
 # 1. A push to main (for example merging the release pull request) runs ci.
 # 2. On ci completion this workflow starts (workflow_run gate).
 # 3. The guard step fails the run unless the green ci run tested the current
-#    main tip, so nothing is tagged from a commit whose ci has not passed.
+#    main tip, so nothing is tagged from a commit whose ci has not passed;
+#    when the guard fails, the token and release steps below it are skipped
+#    automatically.
 # 4. release-please then updates the release pull request or, when the merged
-#    commit is the release pull request itself, creates the vX.Y.Z Git tag and
-#    the GitHub release using only the ephemeral GITHUB_TOKEN.
+#    commit is the release pull request itself, creates the vX.Y.Z Git tag
+#    and the GitHub release using a short-lived GitHub App installation
+#    token. The default GITHUB_TOKEN cannot open the release pull request
+#    under this organization's workflow token policy.
 #
-# Tags created with GITHUB_TOKEN do not trigger further workflow runs, so the
-# tag does not re-run ci. workflow_run uses the default-branch copy of this
-# file, so activation starts once this change reaches main.
+# The App token is minted from the organization's chart updater GitHub App
+# (manual owner configuration, not Terraform-managed) and is scoped to
+# owner makeitworkcloud / repositories terraform-libvirt-domain with Contents
+# and Pull requests write only. The App installation must manually select
+# terraform-libvirt-domain; until an organization owner confirms that
+# installation, this workflow cannot mint a token and the rollout is not
+# complete. Unlike GITHUB_TOKEN, App-created tags can trigger workflow runs;
+# ci does not listen for tags and release-please is the single release
+# producer, so the tag does not re-enter CI.
+#
+# workflow_run uses the default-branch copy of this file, so activation starts
+# once this change reaches main.
 name: release
 
 on:
@@ -25,12 +38,10 @@ on:
     types: [completed]
     branches: [main]
 
-# Minimum scopes documented by googleapis/release-please-action for creating
-# tags, releases, release pull requests, and labels.
+# The job's GITHUB_TOKEN only reads branch state for the guard step. All
+# writes go through the App installation token created below.
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
 
 concurrency:
   group: module-release
@@ -61,8 +72,19 @@ jobs:
               );
             }
 
+      - name: Create scoped GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: "4745727"
+          private-key: ${{ secrets.CHART_UPDATER_GITHUB_APP_PRIVATE_KEY }}
+          owner: makeitworkcloud
+          repositories: terraform-libvirt-domain
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Conventional Commits release (SemVer, tag, and GitHub release)
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           release-type: terraform-module
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
