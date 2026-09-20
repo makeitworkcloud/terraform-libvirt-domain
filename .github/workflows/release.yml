@@ -22,8 +22,8 @@
 # (manual owner configuration, not Terraform-managed) and is scoped to
 # owner makeitworkcloud / repositories terraform-libvirt-domain with Contents
 # and Pull requests write only. The installation scope is currently
-# unverified: rollout stays blocked until an organization owner confirms the
-# repository is selected (Only select repositories), and token minting fails
+# unverified: rollout stays blocked until an organization owner confirms
+# the repository is selected (Only select repositories), and token minting fails
 # if the repository is not selected. Unlike GITHUB_TOKEN, App-created tags
 # can trigger workflow runs; ci does not listen for tags and release-please
 # is the single release producer, so the tag does not re-enter CI.
@@ -83,8 +83,16 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
+      # The signed annotated tag v0.1.0 points at 218dd6, the pre-rewrite
+      # twin of the tree-identical reachable commit fd84957; release-please
+      # skips release SHAs that are not reachable from main, so the baseline
+      # is anchored by release-please-config.json (last-release-sha) and
+      # .release-please-manifest.json (current version 0.1.0). The existing
+      # tag and release are preserved. release-type must stay unset here:
+      # the action bypasses the config file when release-type is present.
       - name: Conventional Commits release (SemVer, tag, and GitHub release)
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          release-type: terraform-module
           token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

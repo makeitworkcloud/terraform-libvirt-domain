@@ -1,0 +1,8 @@
+{
+  "release-type": "terraform-module",
+  "include-component-in-tag": false,
+  "last-release-sha": "fd84957dad31ed46bf57175c7735e475a361aceb",
+  "packages": {
+    ".": {}
+  }
+}
