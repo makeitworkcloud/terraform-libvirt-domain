@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          tofu init -backend=false 2&gt;&1 | tee initialize.log
+          tofu init -backend=false 2>&1 | tee initialize.log
 
       - name: Run tests
         id: validation
@@ -79,7 +79,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          SKIP=no-commit-to-branch make test 2&gt;&1 | tee validation.log
+          SKIP=no-commit-to-branch make test 2>&1 | tee validation.log
 
       - name: Report validation on pull request
         if: >-
