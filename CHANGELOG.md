@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/makeitworkcloud/terraform-libvirt-domain/compare/v1.0.0...v1.0.1) (2026-09-27)
+
+
+### Bug Fixes
+
+* preserve public boot names when rebuild token is null ([#25](https://github.com/makeitworkcloud/terraform-libvirt-domain/issues/25)) ([b201316](https://github.com/makeitworkcloud/terraform-libvirt-domain/commit/b20131609ef4ac4edbb79965694876c50c7d072e))
+
 ## [1.0.0](https://github.com/makeitworkcloud/terraform-libvirt-domain/compare/v0.1.0...v1.0.0) (2026-09-20)
 
 
