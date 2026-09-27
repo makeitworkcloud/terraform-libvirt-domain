@@ -9,7 +9,7 @@ help:
 	@echo
 	@echo "\thelp: show this help text"
 	@echo "\tinit: run 'terraform init' (no backend)"
-	@echo "\ttest: fetch canonical pre-commit config and run checks"
+	@echo "\ttest: fetch canonical pre-commit config, run checks and mocked plan tests"
 	@echo
 	@echo "One-time repo init targets"
 	@echo "--------------------------"
@@ -23,6 +23,7 @@ init:
 
 test: pre-commit-config pre-commit-install-hooks
 	@pre-commit run -a
+	@${TERRAFORM} test -no-color
 
 pre-commit-config:
 	@curl --fail --silent --show-error --location \
