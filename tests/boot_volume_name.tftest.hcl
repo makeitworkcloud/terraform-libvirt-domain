@@ -1,14 +1,14 @@
 mock_provider "libvirt" {}
 
 variables {
-  name                              = "test-vm"
-  boot_image_url                    = "https://example.invalid/base.qcow2"
-  cloudinit_meta_data_template       = "tests/fixtures/cloud-init.tftpl"
-  cloudinit_meta_data_vars           = {}
-  cloudinit_user_data_template       = "tests/fixtures/cloud-init.tftpl"
-  cloudinit_user_data_vars           = {}
-  cloudinit_network_config_template  = "tests/fixtures/cloud-init.tftpl"
-  cloudinit_network_config_vars      = {}
+  name                             = "test-vm"
+  boot_image_url                   = "https://example.invalid/base.qcow2"
+  cloudinit_meta_data_template      = "tests/fixtures/cloud-init.tftpl"
+  cloudinit_meta_data_vars          = {}
+  cloudinit_user_data_template      = "tests/fixtures/cloud-init.tftpl"
+  cloudinit_user_data_vars          = {}
+  cloudinit_network_config_template = "tests/fixtures/cloud-init.tftpl"
+  cloudinit_network_config_vars     = {}
 }
 
 run "omitted_token_preserves_public_name" {

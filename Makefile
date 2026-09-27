@@ -12,10 +12,11 @@ help:
 	@echo "\ttest: fetch canonical pre-commit config, run checks and mocked plan tests"
 	@echo
 	@echo "One-time repo init targets"
+	@echo "--------------------------"
 	@echo
 	@echo "\tpre-commit-install-hooks: install pre-commit hooks"
 	@echo "\tpre-commit-check-deps: check pre-commit dependencies"
-	@echo ""
+	@echo
 
 init:
 	@${TERRAFORM} init -backend=false -upgrade
