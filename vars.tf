@@ -71,6 +71,49 @@ EOF
   default = []
 }
 
+variable "existing_disks" {
+  description = "Existing raw files to attach by virtio target (vdb-vdz). Each disk requires a unique absolute source_file and a unique 1-20 character serial using [A-Za-z0-9._-]. File lifecycle is external to this module."
+  type = map(object({
+    source_file = string
+    serial      = string
+  }))
+  default  = {}
+  nullable = false
+
+  validation {
+    condition     = alltrue([for dev in keys(var.existing_disks) : can(regex("^vd[b-z]$", dev))])
+    error_message = "existing_disks keys must be virtio targets vdb through vdz (vda is reserved for boot)."
+  }
+
+  validation {
+    condition = alltrue([
+      for disk in values(var.existing_disks) : try(
+        can(regex("^/[^[:space:]]+$", disk.source_file)) &&
+        !can(regex("(^|/)\\.{1,2}(/|$)|//|/$", disk.source_file)),
+        false
+      )
+    ])
+    error_message = "Each existing disk must be non-null with an absolute, non-root source_file without whitespace, repeated/trailing slashes, or dot/dotdot path components."
+  }
+
+  validation {
+    condition = alltrue([
+      for disk in values(var.existing_disks) : can(regex("^[A-Za-z0-9._-]{1,20}$", try(disk.serial, null)))
+    ])
+    error_message = "Each existing disk must have a non-null serial of 1-20 characters using [A-Za-z0-9._-]."
+  }
+
+  validation {
+    condition     = length(distinct([for disk in values(var.existing_disks) : try(disk.source_file, null)])) == length(var.existing_disks)
+    error_message = "existing_disks source_file values must be unique."
+  }
+
+  validation {
+    condition     = length(distinct([for disk in values(var.existing_disks) : try(disk.serial, null)])) == length(var.existing_disks)
+    error_message = "existing_disks serial values must be unique."
+  }
+}
+
 variable "bridge_name" {
   description = "Name of the network bridge for the second network interface."
   type        = string

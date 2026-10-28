@@ -25,19 +25,72 @@ module "vm" {
 }
 ```
 
+## Existing raw disks
+
+`existing_disks` attaches existing raw files on the libvirt host without creating
+managed volumes. It defaults to `{}`. This feature requires libvirt provider
+`>= 0.9.9, < 0.10` and is not available in the older `v0.1.0` example above.
+Until a release containing this feature is published, use a local copy of this
+module (replace the relative source path below):
+
+```hcl
+module "retained_vm" {
+  source = "./path/to/module"
+
+  name                              = "retained-vm"
+  cloudinit_meta_data_template      = "${path.module}/templates/meta-data.tpl"
+  cloudinit_meta_data_vars          = { hostname = "retained-vm" }
+  cloudinit_user_data_template      = "${path.module}/templates/user-data.tpl"
+  cloudinit_user_data_vars          = {}
+  cloudinit_network_config_template = "${path.module}/templates/network-config.tpl"
+  cloudinit_network_config_vars     = { ip_address = "192.168.1.101" }
+
+  existing_disks = {
+    vdb = {
+      source_file = "/srv/retained/ssd.raw"
+      serial      = "k3s-retained-ssd"
+    }
+    vdc = {
+      source_file = "/srv/retained/nvme.raw"
+      serial      = "k3s-retained-nvme"
+    }
+  }
+}
+```
+
+Targets must be `vdb` through `vdz`; `vda` remains the boot disk.
+`extra_volumes` still creates managed volumes and assigns targets sequentially
+from `vdb` through `vdj`; existing targets must not overlap those assignments.
+Disk order is boot, managed extras, existing disks sorted by target, then the
+cloud-init cdrom. Existing disks use `raw`, virtio, and `discard = "unmap"`.
+Serials must be unique, 1-20 characters of `[A-Za-z0-9._-]`; use their stable
+guest `/dev/disk/by-id/virtio-<serial>` names rather than relying on enumeration.
+
+The operator owns file creation, sizing, permissions/security labels, backups,
+and eventual deletion. Files must already exist on the libvirt host, be raw
+images (not QCOW2 or block devices), and be accessible to QEMU. This module does
+not create, resize, import, format, or delete them, including on domain rebuild
+or removal; guest writes still modify their contents. Do not attach the same
+writable backing file to multiple VMs. Paths must be absolute, non-root, unique,
+and contain no whitespace, repeated/trailing slashes, or `.`/`..` components.
+Uniqueness is textual: detecting symlink/hard-link aliases and verifying the
+actual file format remain operator responsibilities. Removing a map entry
+removes its attachment, not its backing file. Review the domain plan before
+changing attachments; no live attachment behavior is guaranteed here.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
-| <a name="requirement_libvirt"></a> [libvirt](#requirement\_libvirt) | ~> 0.9.0 |
+| <a name="requirement_libvirt"></a> [libvirt](#requirement\_libvirt) | >= 0.9.9, < 0.10 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_libvirt"></a> [libvirt](#provider\_libvirt) | ~> 0.9.0 |
+| <a name="provider_libvirt"></a> [libvirt](#provider\_libvirt) | >= 0.9.9, < 0.10 |
 | <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
@@ -71,6 +124,7 @@ No modules.
 | <a name="input_cloudinit_user_data_template"></a> [cloudinit\_user\_data\_template](#input\_cloudinit\_user\_data\_template) | The template content for cloud-init user-data template. | `string` | n/a | yes |
 | <a name="input_cloudinit_user_data_vars"></a> [cloudinit\_user\_data\_vars](#input\_cloudinit\_user\_data\_vars) | Variable map for the cloud-init user-data template. Set to {} if not used. | `map(string)` | n/a | yes |
 | <a name="input_description"></a> [description](#input\_description) | Description for the libvirt domain. | `string` | `""` | no |
+| <a name="input_existing_disks"></a> [existing\_disks](#input\_existing\_disks) | Existing raw files to attach by virtio target (vdb-vdz). Each disk requires a unique absolute source\_file and a unique 1-20 character serial using [A-Za-z0-9.\_-]. File lifecycle is external to this module. | <pre>map(object({<br/>    source_file = string<br/>    serial      = string<br/>  }))</pre> | `{}` | no |
 | <a name="input_extra_volumes"></a> [extra\_volumes](#input\_extra\_volumes) | List of additional volumes to attach to the domain. Each object should contain:<br/>  - name: Name of the volume.<br/>  - size: Size of the volume in bytes.<br/>Example:<br/>[<br/>  {<br/>    name = "runner-var-lib-docker.qcow2"<br/>    size = 107374182400<br/>  }<br/>] | <pre>list(object({<br/>    name = string<br/>    size = number<br/>  }))</pre> | `[]` | no |
 | <a name="input_memory"></a> [memory](#input\_memory) | Amount of memory (in MB) to assign to the domain. | `number` | `2048` | no |
 | <a name="input_name"></a> [name](#input\_name) | The name of the libvirt domain (virtual machine) and related resources. | `string` | n/a | yes |
