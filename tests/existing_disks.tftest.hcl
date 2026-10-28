@@ -41,7 +41,7 @@ run "null_map_uses_empty_default" {
   }
 
   assert {
-    condition     = length(var.existing_disks) == 0 && length(libvirt_domain.vm.devices.disks) == 2
+    condition     = length(libvirt_domain.vm.devices.disks) == 2 && libvirt_domain.vm.devices.disks[0].target.dev == "vda" && libvirt_domain.vm.devices.disks[1].target.dev == "sda" && length(libvirt_volume.extra) == 0
     error_message = "nullable=false must use the empty default for a null map."
   }
 }
