@@ -95,7 +95,7 @@ resource "libvirt_domain" "vm" {
   }
 
   devices = {
-    # Disk ordering: boot disk, extra volumes, then cdrom LAST
+    # Disk ordering: boot, managed extras, existing files, then cdrom LAST.
     # libvirt returns disks sorted by bus type (virtio before sata/ide)
     # so we must define them in that order to avoid provider inconsistency errors
     disks = concat(
@@ -127,6 +127,25 @@ resource "libvirt_domain" "vm" {
           }
           target = {
             dev = "vd${substr("bcdefghij", idx, 1)}"
+            bus = "virtio"
+          }
+        }
+      ],
+      [
+        for dev, disk in var.existing_disks : {
+          serial = try(disk.serial, null)
+          driver = {
+            name    = "qemu"
+            type    = "raw"
+            discard = "unmap"
+          }
+          source = {
+            file = {
+              file = try(disk.source_file, null)
+            }
+          }
+          target = {
+            dev = dev
             bus = "virtio"
           }
         }
@@ -189,6 +208,14 @@ resource "libvirt_domain" "vm" {
   }
 
   lifecycle {
+    precondition {
+      condition = length(setintersection(
+        toset(keys(var.existing_disks)),
+        toset([for idx, vol in var.extra_volumes : "vd${substr("bcdefghij", idx, 1)}"])
+      )) == 0
+      error_message = "existing_disks targets must not overlap extra_volumes targets (assigned sequentially from vdb)."
+    }
+
     replace_triggered_by = [
       libvirt_volume.boot
     ]
